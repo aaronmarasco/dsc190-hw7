@@ -4,6 +4,7 @@ from pathlib import Path
 
 INPUT = Path("data/raw/events.csv")
 OUTPUT = Path("data/clean/events.csv")
+VALID_EVENT_TYPES = {"click", "login", "purchase", "scroll", "view"}
 
 
 def main():
@@ -18,11 +19,9 @@ def main():
 
     # Drop rows with non-positive duration
     df = df[df["duration_seconds"] > 0]
+    df["duration_seconds"] = df["duration_seconds"].astype(int)
 
-    # Determine valid event_types from data: types appearing in >=1% of rows
-    type_pcts = df["event_type"].value_counts(normalize=True)
-    valid_types = set(type_pcts[type_pcts >= 0.01].index)
-    df = df[df["event_type"].isin(valid_types)]
+    df = df[df["event_type"].isin(VALID_EVENT_TYPES)]
 
     # Normalize timestamps to ISO 8601: YYYY-MM-DDTHH:MM:SS
     df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce", format="mixed")
